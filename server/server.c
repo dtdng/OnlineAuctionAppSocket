@@ -5,9 +5,15 @@
 #include <netinet/in.h>
 #include <string.h>
 
+#include "./database/database_function.h"
+#include "./server_function.h"
 #define MAXLINE 4096 /*max text line length*/
 #define SERV_PORT 3000 /*port*/
 #define LISTENQ 8 /*maximum number of client connections */
+#define START_HEADER 8
+#define START_PAYLOAD 25
+
+void process_message(char* msg, int n);
 
 int main (int argc, char **argv)
 {
@@ -15,8 +21,8 @@ int main (int argc, char **argv)
     pid_t childpid;
     socklen_t clilen;
     char buf[MAXLINE];
+
     struct sockaddr_in cliaddr, servaddr;
-        
     //creation of the socket
     listenfd = socket (AF_INET, SOCK_STREAM, 0);
         
@@ -30,17 +36,22 @@ int main (int argc, char **argv)
     listen (listenfd, LISTENQ);
         
     printf("%s\n","Server running...waiting for connections.");
-        
+
     for ( ; ; ) {
             
         clilen = sizeof(cliaddr);
         connfd = accept (listenfd, (struct sockaddr *) &cliaddr, &clilen);
         printf("%s\n","Received request...");
-                        
+
+        char hello_str[] = "HelloFromServer";
+        send(connfd, hello_str, strlen(hello_str), 0);
+
         while ( (n = recv(connfd, buf, MAXLINE,0)) > 0)  {
-            printf("%s","String received from and resent to the client:");
+            // printf("%s\n","String received from and resent to the client:");
             puts(buf);
-            send(connfd, buf, n, 0);
+            process_message(buf, n);
+            // char respone[MAXLINE] = process_message(buf, n);
+            // send(connfd, respone, n, 0);
         }
                     
         if (n < 0) {
@@ -52,4 +63,22 @@ int main (int argc, char **argv)
     }
     //close listening socket
     close (listenfd); 
+}
+
+void process_message(char* msg, int n){
+    char header[10], data[MAXLINE]; 
+    for(int i = 0; i < START_HEADER+1; i++){
+        header[i] = msg[START_HEADER+i];
+    }
+    for(int i = 0; i < n-START_PAYLOAD; i++){
+        data[i] = msg[START_PAYLOAD+i];
+    }
+    // printf("header received: %s\n" ,header);
+    // printf("payload received: %s\n" ,data);
+    if(strcmp(header, "LOGIN_REQ") == 0){
+        printf("hi\n");
+        login_request(data);
+        printf("\n");
+        return;
+    }
 }

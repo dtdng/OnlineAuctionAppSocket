@@ -1,6 +1,7 @@
 # test.c
 # test.cpp
 # example.*
+
 # Prerequisites
 *.d
 .vscode

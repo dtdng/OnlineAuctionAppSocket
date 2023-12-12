@@ -1,16 +1,13 @@
 #pragma once
-#include <iostream> 
+#include <stdio.h> 
 #include <sqlite3.h> 
-#include <string> 
+#include <string.h> 
 
-using namespace std;
-
-#define DATABASE_FILE "database.db"
+#define DATABASE_FILE "./server/database/database.db"
 
 sqlite3* db;
 
 void open_database() {
-    
     if (sqlite3_open(DATABASE_FILE, &db) != SQLITE_OK) {
         fprintf(stderr, "Error: Can't open database: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
@@ -121,7 +118,6 @@ int insert_account_table(char* username, char* password){
 }
 
 int check_login(char* username, char* password){
-    
     open_database();
     
     int check = -1; 
@@ -160,3 +156,4 @@ int check_login(char* username, char* password){
     // 2 = not found
     // 3 = err
 }
+

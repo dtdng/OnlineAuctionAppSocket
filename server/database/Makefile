@@ -1,4 +1,4 @@
-CC = g++
+CC = gcc
 
 CFLAGS = -Wall
 DBFLAGS = -l sqlite3
@@ -12,7 +12,7 @@ IP_SERVER = 192.168.1.5
 all: clean test.out run_test
 
 test.out: 
-	${CC} ${CFLAGS} test.cpp -o test.out ${DBFLAGS}
+	${CC} ${CFLAGS} test.c -o test.out ${DBFLAGS}
 
 run_test: 
 	./test.out

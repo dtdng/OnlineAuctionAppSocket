@@ -1,11 +1,11 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -w
 DBFLAGS = -l sqlite3
 
 CLIENT_DIR = ./client
 SERVER_DIR = ./server
 
-IP_SERVER = 192.168.1.5
+IP_SERVER = 127.0.0.1
 
 
 all: client.out server.out 

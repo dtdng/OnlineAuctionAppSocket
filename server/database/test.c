@@ -1,9 +1,9 @@
-#include <iostream> 
+#include <stdio.h> 
 #include <sqlite3.h> 
 #include <string.h>
 #include "database_function.h"
 
-using namespace std;
+// using namespace std;
 
 int main(int argc, char** argv) 
 { 
@@ -14,6 +14,6 @@ int main(int argc, char** argv)
 	insert_account_table("acc2", "123456789");
 	insert_account_table("acc3", "12345678");
 	search_account_table("acc5");
-	cout << "Check login acc3 " << check_login("acc10", "1234678") << endl;
+	printf("%d", check_login("dtdng", "12345678"));
 	return (0); 
 } 
