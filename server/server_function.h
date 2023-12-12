@@ -9,12 +9,12 @@
 #include "./database/database_function.h"
 
 void login_request(char* data){
+    printf("Payload: %s\n", data);
     char username[20];
     int i = 10;
     char password[20];
     memset(username,0,strlen(username));
     memset(password,0,strlen(password));
-    
     while(data[i]!= ';'){
         username[i - 10] = data[i];
         i++;
@@ -25,6 +25,8 @@ void login_request(char* data){
         password[i - start_pwd_part] = data[i];
         i++;
     }
+    printf("Username: %s\n", username);
+    printf("Password: %s\n", password);
     int status = check_login(username,password);
     if(status == 0){
         printf("Login successfully!!!!");

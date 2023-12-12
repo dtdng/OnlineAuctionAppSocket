@@ -50,6 +50,7 @@ int main (int argc, char **argv)
             // printf("%s\n","String received from and resent to the client:");
             puts(buf);
             process_message(buf, n);
+            memset(buf,0,strlen(buf));
             // char respone[MAXLINE] = process_message(buf, n);
             // send(connfd, respone, n, 0);
         }
@@ -67,9 +68,12 @@ int main (int argc, char **argv)
 
 void process_message(char* msg, int n){
     char header[10], data[MAXLINE]; 
+    memset(header,0,strlen(header));
+    memset(data,0,strlen(data));
     for(int i = 0; i < START_HEADER+1; i++){
         header[i] = msg[START_HEADER+i];
     }
+    
     for(int i = 0; i < n-START_PAYLOAD; i++){
         data[i] = msg[START_PAYLOAD+i];
     }
