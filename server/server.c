@@ -85,4 +85,10 @@ void process_message(char* msg, int n){
         printf("\n");
         return;
     }
+
+    if(strcmp(header, "REGISTER_") == 0){
+        register_request(data);
+        printf("\n");
+        return;
+    }
 }

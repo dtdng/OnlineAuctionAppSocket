@@ -37,3 +37,45 @@ void login_request(char* data){
     }
     return;
 }
+
+void register_request(char* data) {
+    printf("Payload: %s\n", data);
+
+    char username[20];
+    int i = 10;
+    char password[20];
+    memset(username, 0, sizeof(username));
+    memset(password, 0, sizeof(password));
+
+    // Extract username
+    while (data[i] != ';') {
+        username[i - 10] = data[i];
+        i++;
+    }
+
+    i += 12; // Move past the ";password:" part
+    int start_pwd_part = i;
+
+    // Extract password
+    while (i < strlen(data)) {
+        password[i - start_pwd_part] = data[i];
+        i++;
+    }
+
+    // Display registration information
+    printf("Username: %s\n", username);
+    printf("Password: %s\n", password);
+
+    // Perform registration check
+    int status = insert_account_table(username, password);
+
+    if (status == 0) {
+        printf("Registration successful!\n");
+    } else if (status == 1) {
+        printf("Username already exists. Please choose another one.\n");
+    } else {
+        printf("Registration failed. Please try again.\n");
+    }
+
+    return;
+}
