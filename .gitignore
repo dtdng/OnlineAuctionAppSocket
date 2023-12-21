@@ -2,6 +2,7 @@
 # test.cpp
 # example.*
 
+*.asta
 # Prerequisites
 *.d
 .vscode
