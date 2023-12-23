@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "./database/database_function.h"
 #include "./server_function.h"
@@ -13,7 +14,8 @@
 #define START_HEADER 8
 #define START_PAYLOAD 25
 
-void process_message(char* msg, int n);
+void process_message(char* msg, int n, int connfd);
+void send_message(char* header, char* data, int connfd);
 
 int main (int argc, char **argv)
 {
@@ -43,21 +45,23 @@ int main (int argc, char **argv)
         connfd = accept (listenfd, (struct sockaddr *) &cliaddr, &clilen);
         printf("%s\n","Received request...");
 
-        char hello_str[] = "HelloFromServer";
-        send(connfd, hello_str, strlen(hello_str), 0);
-
-        while ( (n = recv(connfd, buf, MAXLINE,0)) > 0)  {
-            // printf("%s\n","String received from and resent to the client:");
-            puts(buf);
-            process_message(buf, n);
-            memset(buf,0,strlen(buf));
-            // char respone[MAXLINE] = process_message(buf, n);
-            // send(connfd, respone, n, 0);
-        }
-                    
-        if (n < 0) {
-            perror("Read error"); 
-            exit(1);
+        if ( (childpid = fork ()) == 0 ) {
+            char hello_str[] = " ";
+            send(connfd, hello_str, strlen(hello_str), 0);
+            
+            while ( (n = recv(connfd, buf, MAXLINE,0)) > 0)  {
+                // printf("%s\n","String received from and resent to the client:");
+                puts(buf);
+                process_message(buf, n, connfd);
+                memset(buf,0,strlen(buf));
+                // char respone[MAXLINE] = process_message(buf, n);
+                // send(connfd, respone, n, 0);
+            }
+                        
+            if (n < 0) {
+                perror("Read error"); 
+                exit(1);
+            }
         }
         close(connfd);
         
@@ -66,7 +70,7 @@ int main (int argc, char **argv)
     close (listenfd); 
 }
 
-void process_message(char* msg, int n){
+void process_message(char* msg, int n, int connfd){
     char header[10], data[MAXLINE]; 
     memset(header,0,strlen(header));
     memset(data,0,strlen(data));
@@ -80,8 +84,14 @@ void process_message(char* msg, int n){
     // printf("header received: %s\n" ,header);
     // printf("payload received: %s\n" ,data);
     if(strcmp(header, "LOGIN_REQ") == 0){
-        printf("hi\n");
-        login_request(data);
+        int respone = login_request(data);
+        if(respone == 0){
+            send_message("LOGIN_RES", "0", connfd);
+        }else if (respone == 1){
+            send_message("LOGIN_RES", "1", connfd);
+        }else if (respone == 2){
+            send_message("LOGIN_RES", "2", connfd);
+        }
         printf("\n");
         return;
     }
@@ -91,4 +101,19 @@ void process_message(char* msg, int n){
         printf("\n");
         return;
     }
+}
+
+void send_message(char* header, char* data, int connfd){
+    char sendline[MAXLINE], recvline[MAXLINE];
+    sprintf(sendline, "HEADER: %s; DATA: %s", header, data);
+    send(connfd, sendline, strlen(sendline), 0);
+
+    printf("Send Msg: %s", sendline);
+
+    // if (recv(sockfd, recvline, MAXLINE,0) == 0){
+    //     //error: server terminated prematurely
+    //     perror("The server terminated prematurely"); 
+    //     exit(4);
+    // }
+
 }

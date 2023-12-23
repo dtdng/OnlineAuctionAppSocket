@@ -13,8 +13,6 @@ int display_welcome_menu(){
     printf("1. Login\n");
     printf("2. Register\n");
     printf("Please choose 1-2: ...\n");
-
-
     int n; 
     scanf("%d", &n);
     while(n != 1 && n != 2){

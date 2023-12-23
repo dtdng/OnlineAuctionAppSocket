@@ -8,7 +8,7 @@
 
 #include "./database/database_function.h"
 
-void login_request(char* data){
+int login_request(char* data){
     printf("Payload: %s\n", data);
     char username[20];
     int i = 10;
@@ -28,17 +28,17 @@ void login_request(char* data){
     printf("Username: %s\n", username);
     printf("Password: %s\n", password);
     int status = check_login(username,password);
-    if(status == 0){
-        printf("Login successfully!!!!");
-    }else if(status == 1){
-        printf("Your information is not correct!");
-    }else if(status == 2){
-        printf("Your information is not correct!");
-    }
-    return;
+    // if(status == 0){
+    //     printf("Login successfully!!!!");
+    // }else if(status == 1){
+    //     printf("Your information is not correct!");
+    // }else if(status == 2){
+    //     printf("Your information is not correct!");
+    // }
+    return status;
 }
 
-void register_request(char* data) {
+int register_request(char* data) {
     printf("Payload: %s\n", data);
 
     char username[20];
@@ -69,13 +69,13 @@ void register_request(char* data) {
     // Perform registration check
     int status = insert_account_table(username, password);
 
-    if (status == 0) {
-        printf("Registration successful!\n");
-    } else if (status == 1) {
-        printf("Username already exists. Please choose another one.\n");
-    } else {
-        printf("Registration failed. Please try again.\n");
-    }
+    // if (status == 0) {
+    //     printf("Registration successful!\n");
+    // } else if (status == 1) {
+    //     printf("Username already exists. Please choose another one.\n");
+    // } else {
+    //     printf("Registration failed. Please try again.\n");
+    // }
 
-    return;
+    return status;
 }
