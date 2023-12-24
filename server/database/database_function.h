@@ -2,10 +2,15 @@
 #include <stdio.h> 
 #include <sqlite3.h> 
 #include <string.h> 
-#define DATABASE_FILE "database.db"
-// #define DATABASE_FILE "./server/database/database.db"
+// #define DATABASE_FILE "database.db"
+#define DATABASE_FILE "./server/database/database.db"
 
 sqlite3* db;
+
+typedef struct Account{
+    char username[20];
+    char password[20];
+} Account;
 
 typedef struct rooms
 {

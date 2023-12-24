@@ -4,13 +4,20 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <stdbool.h>
 #include "menu.h"
 #define MAXLINE 4096 /*max text line length*/
 #define SERV_PORT 3000 /*port*/
 #define START_HEADER 8
 #define START_PAYLOAD 25
 
+// store status
+char username[20];
+bool logged = false;
+int role = 0; //1: bidder, 2: seller
+
 void send_message(char* header, char* data, int sockfd);
+// void send_message(char* msg, int sockfd);
 void process_message(char* msg, int n);
 
 int main(int argc, char **argv) 
@@ -52,26 +59,20 @@ int main(int argc, char **argv)
     printf("\n");
     fputs(recvline, stdout);
     memset(recvline,0,strlen(recvline));
-    // 
-    int login_or_register = display_welcome_menu();
-    Account sender_acc;
-    char header[12];
-    char data[100];
-    if (login_or_register == 1){
-        sender_acc = display_login_menu();
-        sprintf(header, "LOGIN_REQ\0");
-        sprintf(data, "username: %s; password: %s\0", sender_acc.username, sender_acc.password);
-    }else {
-        sender_acc = display_register_menu();
-        sprintf(header, "REGISTER_\0");
-        sprintf(data, "username: %s; password: %s\0", sender_acc.username, sender_acc.password);
-    }
-    send_message(header, data, sockfd);
-    //
+
+    // while (fgets(sendline, MAXLINE, stdin) != NULL) {
     while (fgets(sendline, MAXLINE, stdin) != NULL) {
         memset(recvline, '\0', sizeof(recvline)); 
-        // send(sockfd, sendline, strlen(sendline), 0);
-                
+        if (logged == false){
+            char* msg = login_register_function();
+            send(sockfd, msg, strlen(msg), 0);
+        }else {
+            if (role == 0){
+                role = choose_role();
+            }
+        }
+        
+        // send(sockfd, sendline, strlen(sendline), 0);                
         if (recv(sockfd, recvline, MAXLINE,0) == 0){
             //error: server terminated prematurely
             perror("The server terminated prematurely"); 
@@ -81,6 +82,7 @@ int main(int argc, char **argv)
     }
     exit(0);
 }
+
 
 void process_message(char* msg, int n){
     char header[10], data[MAXLINE]; 
@@ -93,32 +95,31 @@ void process_message(char* msg, int n){
     for(int i = 0; i < n-START_PAYLOAD; i++){
         data[i] = msg[START_PAYLOAD+i];
     }
-    printf("header received: %s\n" ,header);
-    printf("payload received: %s\n" ,data);
-    if(strcmp(header, "LOGIN_RES") == 0){
-        if(strcmp(data, "0") == 0) printf("login successed");
-        else printf("wrong pwd or username");
+    // printf("header received: %s\n" ,header);
+    // printf("payload received: %s\n" ,data);
+    if (strcmp(header, "LOGIN_RES") == 0){
+        if(strcmp(data, "0") == 0) {
+            printf("login successed");
+            logged = true;
+        }
+        else {
+            printf("Wrong pwd or username!!\n");
+            logged = false;
+        }
         printf("\n");
         return;
-    }
-
-    if(strcmp(header, "REGIS_RES") == 0){
+    }else if (strcmp(header, "REGIS_RES") == 0){
         // register_request(data);
         printf("\n");
         return;
     }
+    // else if ( ){
+
+    // }
 }
 
 void send_message(char* header, char* data, int sockfd){
     char sendline[MAXLINE], recvline[MAXLINE];
     sprintf(sendline, "HEADER: %s; DATA: %s", header, data);
     send(sockfd, sendline, strlen(sendline), 0);
-
-    // if (recv(sockfd, recvline, MAXLINE,0) == 0){
-    //     //error: server terminated prematurely
-    //     perror("The server terminated prematurely"); 
-    //     exit(4);
-    // }
-    // printf("%s", "Respone from the server: ");
-    // fputs(recvline, stdout);
-}
+};

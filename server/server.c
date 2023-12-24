@@ -14,6 +14,8 @@
 #define START_HEADER 8
 #define START_PAYLOAD 25
 
+// char username[20];
+
 void process_message(char* msg, int n, int connfd);
 void send_message(char* header, char* data, int connfd);
 
@@ -108,7 +110,7 @@ void send_message(char* header, char* data, int connfd){
     sprintf(sendline, "HEADER: %s; DATA: %s", header, data);
     send(connfd, sendline, strlen(sendline), 0);
 
-    printf("Send Msg: %s", sendline);
+    // printf("Send Msg: %s", sendline);
 
     // if (recv(sockfd, recvline, MAXLINE,0) == 0){
     //     //error: server terminated prematurely
