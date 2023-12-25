@@ -70,6 +70,11 @@ int main(int argc, char **argv)
             if (role == 0){
                 role = choose_role();
             }
+            if (role == 1) { //bidder
+                bidder_menu();
+            }else if (role == 2) { //seller
+                seller_menu();
+            }
         }
         
         // send(sockfd, sendline, strlen(sendline), 0);                
@@ -99,11 +104,11 @@ void process_message(char* msg, int n){
     // printf("payload received: %s\n" ,data);
     if (strcmp(header, "LOGIN_RES") == 0){
         if(strcmp(data, "0") == 0) {
-            printf("login successed");
+            printf(ANSI_COLOR_GREEN "login successed\n" ANSI_COLOR_RESET);
             logged = true;
         }
         else {
-            printf("Wrong pwd or username!!\n");
+            printf(ANSI_COLOR_RED "Wrong pwd or username!!\n" ANSI_COLOR_RESET);
             logged = false;
         }
         printf("\n");

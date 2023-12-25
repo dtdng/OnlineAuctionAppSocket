@@ -14,7 +14,9 @@
 #define START_HEADER 8
 #define START_PAYLOAD 25
 
-// char username[20];
+char username[20];
+int room_id;
+
 
 void process_message(char* msg, int n, int connfd);
 void send_message(char* header, char* data, int connfd);

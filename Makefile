@@ -5,7 +5,7 @@ DBFLAGS = -l sqlite3
 CLIENT_DIR = ./client
 SERVER_DIR = ./server
 
-IP_SERVER = 192.168.1.6
+IP_SERVER = 192.168.56.1
 
 
 all: client.out server.out 

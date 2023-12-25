@@ -4,6 +4,16 @@
 #include <string.h> 
 #include <syscall.h>
 
+
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
+
 typedef struct Account{
     char username[20];
     char password[20];
@@ -79,6 +89,38 @@ int choose_role(){
     scanf("%d", &n);
     while(n != 1 && n != 2){
         printf("Please choose 1 or 2: ");
+        scanf("%d", &n);
+    }
+    return n;
+}
+
+int bidder_menu(){
+    system("clear");
+    printf("---------------HELLO BIDDER---------------\n");
+    printf("1. View all auction room\n");
+    printf("2. Search auction item\n");
+    printf("3. Join room\n");
+    printf("Please choose 1-3: ...\n");
+    int n; 
+    scanf("%d", &n);
+    while(n != 1 && n != 2){
+        printf("Please choose from 1 to 3: ");
+        scanf("%d", &n);
+    }
+    return n;
+}
+
+int seller_menu(){
+    system("clear");
+    printf("---------------HELLO SELLER---------------\n");
+    printf("1. View all auction room\n");
+    printf("2. Create auction item\n");
+    printf("3. Join room\n");
+    printf("Please choose 1-3: ...\n");
+    int n; 
+    scanf("%d", &n);
+    while(n != 1 && n != 2){
+        printf("Please choose from 1 to 3: ");
         scanf("%d", &n);
     }
     return n;
