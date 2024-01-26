@@ -97,9 +97,36 @@ int main(int argc, char **argv)
                     sprintf(data, "%d\0", room_id);
                     
                     send_message(header, data, sockfd);  
-                } //join room
+                } else if (action == 4){
+                    // back to choose role
+                    role = choose_role();
+                    continue;
+                }
             }else if (role == 2) { //seller
-                seller_menu();
+                int action = seller_menu();
+                if (action == 1){
+                    // view all auction room
+                    char header[] = "VROOM_ALL\0";
+                    char data[] = " ";
+                    send_message(header, data, sockfd); 
+                }else if (action == 2){
+                    //TODO
+                }else  if (action == 3){
+                    //TODO
+                }else if (action == 4){
+                    //TODO
+                    char* room_name = create_room();\
+                    
+                    if(strcmp(room_name, "0") == 0){
+                        continue;
+                    }
+                    send_message("CROOM_REQ", room_name, sockfd);
+                }else if (action == 5){
+                    // back to choose role
+                    role = choose_role();
+                    continue;
+                }
+                
             }
         }
         
@@ -164,8 +191,16 @@ void process_message(char* msg, int n){
         printf("\n");
         free(token);
         return;
+    } else if (strcmp(header, "CROOM_RES") == 0){
+        if (strcmp(data, "0") == 0){
+            LOG_GREEN("Room created successfully\n");
+        }else if (strcmp(data, "1") == 0){
+            LOG_RED("Room name already exist\n");
+        }else if (strcmp(data, "2") == 0){
+            LOG_RED("Database has error\n");
+        }
+        
     }
-
 }
 
 void send_message(char* header, char* data, int sockfd){

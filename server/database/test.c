@@ -30,5 +30,8 @@ int main(int argc, char** argv)
 	insert_items_table("item1", 10, 1000, 1, 12, "Seller");
 	insert_items_table("item2", 200, 2000, 1, 1, "Seller2");
 	insert_items_table("item3", 300, 3000, 1, 2, "Seller2");
+	insert_items_table("item4", 400, 4000, 2, 3, "Seller3");
+	search_item_by_name("item1");
+	search_item_by_room_id(1);	
 	return (0); 
 } 

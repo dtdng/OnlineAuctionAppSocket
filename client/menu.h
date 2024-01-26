@@ -105,11 +105,12 @@ int bidder_menu(){
     printf("1. View all auction room\n");
     printf("2. Search auction item\n");
     printf("3. Join room\n");
-    printf("Please choose 1-3: ...\n");
+    printf("4. Back to choose role\n");
+    printf("Please choose 1-4: ...\n");
     int n; 
     scanf("%d", &n);
-    while(n != 1 && n != 2 && n != 3){
-        printf("Please choose from 1 to 3: ");
+    while(n < 1 || n > 4){
+        printf("Please choose from 1 to 4: ");
         scanf("%d", &n);
     }
     system("clear");
@@ -117,18 +118,43 @@ int bidder_menu(){
 }
 
 int seller_menu(){
-    system("clear");
+    
     printf("---------------HELLO SELLER---------------\n");
     printf("1. View all auction room\n");
     printf("2. Create auction item\n");
     printf("3. Join room\n");
     printf("4. Create room\n");
-    printf("Please choose 1-4: ...\n");
+    printf("5. Back to choose role\n");
+    printf("Please choose 1-5: ...\n");
     int n; 
     scanf("%d", &n);
-    while(n != 1 && n != 2 && n != 3 && n != 4){
-        printf("Please choose from 1 to 4: ");
+    while(n < 1 || n > 5){
+        printf("Please choose from 1 to 5: ");
         scanf("%d", &n);
     }
+    system("clear");
     return n;
+}
+
+char* create_room(){
+    printf("---------------CREATE ROOM---------------\n");
+    printf("Please provide name to create room: \n");
+    char room_name[30];
+    scanf("%s", room_name);
+
+    // printf("Room name: %s\n", room_name);
+
+    printf("Do you want to create room %s? (y/n)\n", room_name);
+    char confirm;
+    scanf("%s", &confirm);
+    while(confirm != 'y' && confirm != 'n'){
+        printf("Please choose y or n: ");
+        scanf("%c", &confirm);
+    }
+    if (confirm == 'y'){
+        char* resultCopy = strdup(room_name);
+        return resultCopy;
+    }else{
+        return "0";
+    }
 }

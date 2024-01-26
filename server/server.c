@@ -122,6 +122,19 @@ void process_message(char* msg, int n, int connfd){
         printf("\n");
         return;
     }
+    if (strcmp(header, "CROOM_REQ") == 0){
+        int respone = insert_rooms_table(data); //insert room to database
+        if(respone == 0){
+            send_message("CROOM_RES", "0", connfd); //send respone to client
+        }else if (respone == 1){
+            send_message("CROOM_RES", "1", connfd);
+        }else if (respone == 2){
+            send_message("CROOM_RES", "2", connfd);
+        }
+        printf("\n");
+        return;
+    }
+    
 }
 
 void send_message(char* header, char* data, int connfd){
