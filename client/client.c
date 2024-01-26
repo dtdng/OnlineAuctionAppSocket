@@ -14,7 +14,9 @@
 // store status
 char username[20];
 bool logged = false;
-int role = 0; //1: bidder, 2: seller
+int role = 0; //1: bidder, 2: seller, 0: not choose
+int is_in_room = 0; //0: not in room, 1: in room
+int room_id; 
 
 void send_message(char* header, char* data, int sockfd);
 // void send_message(char* msg, int sockfd);
@@ -57,6 +59,7 @@ int main(int argc, char **argv)
         exit(4);
     }
     printf("\n");
+    system("clear");
     fputs(recvline, stdout);
     memset(recvline,0,strlen(recvline));
 
@@ -71,7 +74,30 @@ int main(int argc, char **argv)
                 role = choose_role();
             }
             if (role == 1) { //bidder
-                bidder_menu();
+                int action = bidder_menu();
+                if (action == 1){
+                    // view all auction room
+                    char header[] = "VROOM_ALL\0";
+                    char data[] = " ";
+                    send_message(header, data, sockfd); 
+                }else if (action == 2){
+                    // search auction item
+                    // char header[] = "SEARCH_ITEM\0";
+                    // char data[] = " ";
+                    // send_message(header, data, sockfd);
+                } //search auction item
+                else if (action == 3){
+                    // join room
+                    int room_id;
+                    printf("Please enter room id: ");
+                    scanf("%d", &room_id);
+
+                    char header[] = "JOIN_ROOM\0";
+                    char data[5];
+                    sprintf(data, "%d\0", room_id);
+                    
+                    send_message(header, data, sockfd);  
+                } //join room
             }else if (role == 2) { //seller
                 seller_menu();
             }
@@ -100,15 +126,17 @@ void process_message(char* msg, int n){
     for(int i = 0; i < n-START_PAYLOAD; i++){
         data[i] = msg[START_PAYLOAD+i];
     }
-    // printf("header received: %s\n" ,header);
-    // printf("payload received: %s\n" ,data);
+    printf("header received: %s\n" ,header);
+    printf("payload received: %s\n" ,data);
+    
+    // process message with each header
     if (strcmp(header, "LOGIN_RES") == 0){
         if(strcmp(data, "0") == 0) {
-            printf(ANSI_COLOR_GREEN "login successed\n" ANSI_COLOR_RESET);
+            LOG_GREEN("Login successed");
             logged = true;
         }
         else {
-            printf(ANSI_COLOR_RED "Wrong pwd or username!!\n" ANSI_COLOR_RESET);
+            LOG_RED("Wrong password or username!!");
             logged = false;
         }
         printf("\n");
@@ -118,9 +146,26 @@ void process_message(char* msg, int n){
         printf("\n");
         return;
     }
-    // else if ( ){
+    else if (strcmp(header, "VROOM_RES") == 0){
+        char *token,*nameRoom;
+        int idRoom;
+        token = strtok(data, ";");
+        printf("VIEW_ROOM_ALL:\n");
+        // TODO process data to get id and room_name 
+        if(token == NULL){
+            printf("No room available\n");
+            return;
+        }
+        while( token != NULL ) 
+        {
+            printf( " %s\n", token ); //printing each token
+            token = strtok(NULL, ";");
+        }
+        printf("\n");
+        free(token);
+        return;
+    }
 
-    // }
 }
 
 void send_message(char* header, char* data, int sockfd){

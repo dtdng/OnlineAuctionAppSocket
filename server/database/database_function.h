@@ -2,8 +2,8 @@
 #include <stdio.h> 
 #include <sqlite3.h> 
 #include <string.h> 
-// #define DATABASE_FILE "database.db"
-#define DATABASE_FILE "./server/database/database.db"
+#define DATABASE_FILE "database.db"
+// #define DATABASE_FILE "./server/database/database.db"
 
 sqlite3* db;
 
@@ -20,6 +20,7 @@ typedef struct rooms
 
 void open_database() {
     if (sqlite3_open(DATABASE_FILE, &db) != SQLITE_OK) {
+        
         fprintf(stderr, "Error: Can't open database: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
         exit(1);
@@ -192,8 +193,7 @@ void create_items_table(){
             "starting_price REAL NOT NULL,"
             "buy_now_price REAL,"
             "room_id INTEGER NOT NULL,"
-            "start_time DATETIME NOT NULL,"
-            "end_time DATETIME NOT NULL,"
+            "duration INTEGER NOT NULL,"
             "owner TEXT NOT NULL,"
             "FOREIGN KEY (room_id) REFERENCES rooms(room_id)"
         ");";
@@ -235,7 +235,7 @@ int search_all_auction_room_table(){
             check = 1; 
             int id = sqlite3_column_int(stmt, 0);
             // const char* retrievedRoomID = (const char*)sqlite3_column_text(stmt, 1);
-            const char* retrievedRoomName = (const char*)sqlite3_column_text(stmt, 2);
+            const char* retrievedRoomName = (const char*)sqlite3_column_text(stmt, 1);
 
             printf("Room found:\n");
             printf("Room ID: %d\n", id);
@@ -251,6 +251,43 @@ int search_all_auction_room_table(){
         return 1;
     }
 
+    close_database();
+    // return state
+    // 0 = found
+    // 1 = fail
+    // 2 = not found
+}
+
+char* search_all_auction_room_table_string(){
+    char result[1000];
+    result[0] = '\0';
+    open_database();
+    int check = 0; 
+    const char* select_query = "SELECT * FROM rooms;";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, select_query, -1, &stmt, 0) == SQLITE_OK) {
+        // sqlite3_bind_text(stmt, 1, room_id, -1, SQLITE_STATIC);
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            check = 1; 
+            int id = sqlite3_column_int(stmt, 0);
+            // const char* retrievedRoomID = (const char*)sqlite3_column_text(stmt, 1);
+            const char* retrievedRoomName = (const char*)sqlite3_column_text(stmt, 1);
+
+            printf("Room found:\n");
+            printf("Room ID: %d\n", id);
+            printf("Room name: %s\n", retrievedRoomName);
+            char temp[100];
+            sprintf(temp, "%d, %s;", id, retrievedRoomName);
+            strcat(result, temp);
+        }
+        sqlite3_finalize(stmt);
+        char* resultCopy = strdup(result);
+        if(check == 1) return resultCopy;
+        return "Not found";
+    } else {
+        fprintf(stderr, "Error: Can't prepare statement: %s\n", sqlite3_errmsg(db));
+        return "Error";
+    }
     close_database();
     // return state
     // 0 = found
@@ -352,6 +389,7 @@ Room search_auction_room_by_name(char* room_name){
     // 0 = found
     // 1 = fail
     // 2 = not found
+    
 }
 
 int insert_rooms_table(char* room_name){
@@ -384,3 +422,63 @@ int insert_rooms_table(char* room_name){
     // 1 = fail, account exists
     // 2 = fail
 }
+
+int search_all_item_table(){
+    open_database();
+    int check = 0; 
+    const char* select_query = "SELECT * FROM items;";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, select_query, -1, &stmt, 0) == SQLITE_OK) {
+        // sqlite3_bind_text(stmt, 1, room_id, -1, SQLITE_STATIC);
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            check = 1; 
+        }
+        sqlite3_finalize(stmt);
+        if(check == 1) return 0;
+        return 2;
+    } else {
+        fprintf(stderr, "Error: Can't prepare statement: %s\n", sqlite3_errmsg(db));
+        return 1;
+    }
+    close_database();
+    // return state
+    // 0 = found
+    // 1 = fail
+    // 2 = not found
+}
+
+int insert_items_table(char* item_name, int starting_price, int buy_now_price,int room_id, int duration, char* owner){
+    open_database();
+    
+    const char* insert_query = "INSERT INTO items (item_name, starting_price, buy_now_price, room_id, duration, owner) VALUES (?, ?, ?, ?, ?, ?);"; 
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(db, insert_query, -1, &stmt, 0) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, item_name, -1, SQLITE_STATIC);
+        sqlite3_bind_int(stmt, 2, starting_price);
+        sqlite3_bind_int(stmt, 3, buy_now_price);
+        sqlite3_bind_int(stmt, 4, room_id);
+        sqlite3_bind_int(stmt, 5, duration);
+        sqlite3_bind_text(stmt, 6, owner, -1, SQLITE_STATIC);
+
+        if (sqlite3_step(stmt) != SQLITE_DONE) {
+            fprintf(stderr, "Error: Can't insert data: %s\n", sqlite3_errmsg(db));
+        } else {
+            printf("Items %s inserted successfully.\n", item_name);
+        }
+
+        sqlite3_finalize(stmt);
+        close_database();
+        return 0;
+    } else {
+        fprintf(stderr, "Error: Can't prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database();
+        return 2;
+    }
+    
+    // return state
+    // 0 = success
+    // 1 = fail, account exists
+    // 2 = fail
+}
+

@@ -13,6 +13,10 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
+// #define Color_Red "\33[0:31m\\]" // Color Start
+// #define Color_end "\33[0m\\]" // To flush out prev settings
+#define LOG_RED(X) printf("%s %s %s",ANSI_COLOR_RED,X,ANSI_COLOR_RESET)
+#define LOG_GREEN(X) printf("%s %s %s",ANSI_COLOR_GREEN,X,ANSI_COLOR_RESET)
 
 typedef struct Account{
     char username[20];
@@ -90,12 +94,13 @@ int choose_role(){
     while(n != 1 && n != 2){
         printf("Please choose 1 or 2: ");
         scanf("%d", &n);
-    }
+    }    
+    system("clear");
     return n;
 }
 
 int bidder_menu(){
-    system("clear");
+    
     printf("---------------HELLO BIDDER---------------\n");
     printf("1. View all auction room\n");
     printf("2. Search auction item\n");
@@ -103,10 +108,11 @@ int bidder_menu(){
     printf("Please choose 1-3: ...\n");
     int n; 
     scanf("%d", &n);
-    while(n != 1 && n != 2){
+    while(n != 1 && n != 2 && n != 3){
         printf("Please choose from 1 to 3: ");
         scanf("%d", &n);
     }
+    system("clear");
     return n;
 }
 
@@ -116,11 +122,12 @@ int seller_menu(){
     printf("1. View all auction room\n");
     printf("2. Create auction item\n");
     printf("3. Join room\n");
-    printf("Please choose 1-3: ...\n");
+    printf("4. Create room\n");
+    printf("Please choose 1-4: ...\n");
     int n; 
     scanf("%d", &n);
-    while(n != 1 && n != 2){
-        printf("Please choose from 1 to 3: ");
+    while(n != 1 && n != 2 && n != 3 && n != 4){
+        printf("Please choose from 1 to 4: ");
         scanf("%d", &n);
     }
     return n;
