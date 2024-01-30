@@ -17,12 +17,18 @@ int main(int argc, char** argv)
 	insert_account_table("acc2", "123456789");
 	insert_account_table("acc3", "12345678");
 	// search_account_table("acc5");
-	// printf("%d", check_login("dtdng", "12345678"));
-
+	printf("%d", check_login("dtdng", "12345678"));
+	printf("%d", check_login("dtdng", "123456789"));
+	printf("%d", check_login("dtdng", "12345678"));
+	update_user_room_id("dtdng", 1);
+	
+	logout_user("dtdng");
 	insert_rooms_table("A's auction");
 	insert_rooms_table("B's auction");
 	insert_rooms_table("B's auction");
 	insert_rooms_table("C's auction");
+
+	
 	// search_auction_room_by_id("1");
 	// search_auction_room_by_name("C's auction");
 	// search_all_auction_room_table();

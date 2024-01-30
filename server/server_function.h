@@ -9,7 +9,6 @@
 #include "./database/database_function.h"
 
 int login_request(char* data){
-    // printf("Payload: %s\n", data);
     char username[20];
     int i = 10;
     char password[20];
@@ -26,12 +25,11 @@ int login_request(char* data){
         i++;
     }
     int status = check_login(username,password);
+
     return status;
 }
 
 int register_request(char* data) {
-    printf("Payload: %s\n", data);
-
     char username[20];
     int i = 10;
     char password[20];

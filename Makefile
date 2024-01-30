@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = 
-# CFLAGS = -w
+# CFLAGS = 
+CFLAGS = -w
 DBFLAGS = -l sqlite3
 
 CLIENT_DIR = ./client

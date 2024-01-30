@@ -50,7 +50,9 @@ void create_account_table(){
         "CREATE TABLE IF NOT EXISTS accounts ("
         "id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "username TEXT NOT NULL,"
-        "password TEXT NOT NULL"
+        "password TEXT NOT NULL,"
+        "status INTEGER DEFAULT 0," // 0 = offline, 1 = online, 2 = in room, 3 = in auction, 4 = in bidding
+        "room_id INTEGER DEFAULT 0" // 0 = not in room
         ");";
 
     if (sqlite3_exec(db, create_table_query, 0, 0, 0) != SQLITE_OK) {
@@ -131,7 +133,7 @@ int insert_account_table(char* username, char* password){
 
 int check_login(char* username, char* password){
     open_database();
-    
+    int onlineStatus = -1 ;
     int check = -1; 
     const char* select_query = "SELECT * FROM accounts WHERE username = ?;";
     sqlite3_stmt* stmt;
@@ -139,24 +141,32 @@ int check_login(char* username, char* password){
         sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             check = 1; 
-            // int id = sqlite3_column_int(stmt, 0);
-            // const char* retrievedUsername = (const char*)sqlite3_column_text(stmt, 1);
             const char* retrievedPassword = (const char*)sqlite3_column_text(stmt, 2);
-
-            // printf("Account found:\n");
-            // printf("ID: %d\n", id);
-            // printf("Username: %s\n", retrievedUsername);
-            // printf("Password: %s\n", retrievedPassword);
+            onlineStatus = sqlite3_column_int(stmt, 3); 
             check = strcmp(password, retrievedPassword);
+            
         }
         
         sqlite3_finalize(stmt);
         
-        if(check == 0) return 0;
+        if(check == 0) {
+            if (onlineStatus == 1) {
+                fprintf(stderr, "Error: User already logged in.\n");
+                close_database();
+                return 4; // User already logged in
+            } else {
+                // Update online status to indicate that the user is now online
+                update_user_online_status(username, 1);
+                printf("Login successful. User is now online.\n");
+                close_database();
+                return 0; // Success
+            }
+        };
         if(check == 1) return 1; 
         return 2;
     } else {
         fprintf(stderr, "Error: Can't prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database();
         return 3;
     }
 
@@ -167,6 +177,35 @@ int check_login(char* username, char* password){
     // 1 = found & wrong pwd
     // 2 = not found
     // 3 = err
+}
+
+void update_user_online_status(char* username, int online_status) {
+    open_database();
+
+    const char* update_query = "UPDATE accounts SET status = ? WHERE username = ?;";
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(db, update_query, -1, &stmt, 0) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, online_status);
+        sqlite3_bind_text(stmt, 2, username, -1, SQLITE_STATIC);
+
+        if (sqlite3_step(stmt) == SQLITE_DONE) {
+            printf("User %s online status updated successfully.\n", username);
+        } else {
+            fprintf(stderr, "Error: Can't update online status: %s\n", sqlite3_errmsg(db));
+        }
+
+        sqlite3_finalize(stmt);
+    } else {
+        fprintf(stderr, "Error: Can't prepare statement: %s\n", sqlite3_errmsg(db));
+    }
+
+    close_database();
+}
+
+void logout_user(char* username) {
+    update_user_room_id(username, 0);
+    update_user_online_status(username, 0);
 }
 
 void create_auction_room_table(){
@@ -273,8 +312,6 @@ char* search_all_auction_room_table_string(){
             int id = sqlite3_column_int(stmt, 0);
             // const char* retrievedRoomID = (const char*)sqlite3_column_text(stmt, 1);
             const char* retrievedRoomName = (const char*)sqlite3_column_text(stmt, 1);
-
-            printf("Room found:\n");
             printf("Room ID: %d\n", id);
             printf("Room name: %s\n", retrievedRoomName);
             char temp[100];
@@ -296,33 +333,31 @@ char* search_all_auction_room_table_string(){
     // 2 = not found
 }
 
-int search_auction_room_by_id(char* room_id){
+int search_auction_room_by_id(int room_id){
     open_database();
     int check = 0; 
     const char* select_query = "SELECT * FROM rooms WHERE room_id = ? ;";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, select_query, -1, &stmt, 0) == SQLITE_OK) {
-        sqlite3_bind_text(stmt, 1, room_id, -1, SQLITE_STATIC);
+        sqlite3_bind_int(stmt, 1, room_id);
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             check = 1; 
             int id = sqlite3_column_int(stmt, 0);
             // const char* retrievedRoomID = (const char*)sqlite3_column_text(stmt, 0);
-            const char* retrievedRoomName = (const char*)sqlite3_column_text(stmt, 1);
-
-            printf("Room found:\n");
-            printf("Room ID: %d\n", id);
-            printf("Room name: %s\n", retrievedRoomName);
+            // const char* retrievedRoomName = (const char*)sqlite3_column_text(stmt, 1);
+            // printf("Room found:\n");
+            // printf("Room ID: %d\n", id);
+            // printf("Room name: %s\n", retrievedRoomName);
 
         }
 
         sqlite3_finalize(stmt);
         if(check == 1) return 0;
-        return 2;
+        return 2; 
     } else {
         fprintf(stderr, "Error: Can't prepare statement: %s\n", sqlite3_errmsg(db));
         return 1;
     }
-
     close_database();
 }
 
@@ -551,4 +586,42 @@ char* search_item_by_room_id(int room_id){
         return "Error";
     }
     close_database();
+}
+
+int update_user_room_id(char* username, int room_id) {
+    open_database();
+
+    const char* update_query = "UPDATE accounts SET room_id = ? WHERE username = ?;";
+    sqlite3_stmt* stmt;
+
+    
+    if(room_id != 0) {
+        int check = search_auction_room_by_id(room_id);
+        if(check == 2){
+           fprintf(stderr, "Room %d not found\n", room_id);
+            return 2;
+        }
+    }
+
+    if (sqlite3_prepare_v2(db, update_query, -1, &stmt, 0) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, room_id);
+        sqlite3_bind_text(stmt, 2, username, -1, SQLITE_STATIC);
+
+        if (sqlite3_step(stmt) == SQLITE_DONE) {
+            if(room_id == 0)
+                printf("User %s has left room\n", username);
+            else
+                printf("User %s has joined room %d\n", username, room_id);
+        } else {
+            fprintf(stderr, "Error: Can't update room id: %s\n", sqlite3_errmsg(db));
+        }
+
+        sqlite3_finalize(stmt);
+        close_database();
+        return 0; // Success
+    } else {
+        fprintf(stderr, "Error: Can't prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database();
+        return 1; // Error
+    }
 }

@@ -24,6 +24,7 @@ typedef struct Account{
 } Account;
 
 char username[20];
+int room_id;
 
 int display_welcome_menu(){
     // system("clear");
@@ -47,7 +48,7 @@ Account display_login_menu(){
     scanf("%s", user_acc.username);
     printf("Password: ");
     scanf("%s", user_acc.password);
-
+    strcpy(username, user_acc.username);
     return user_acc;
 }
 
@@ -92,7 +93,7 @@ int choose_role(){
     int n; 
     scanf("%d", &n);
     while(n != 1 && n != 2){
-        printf("Please choose 1 or 2: ");
+        printf("Please choose 1 - 2: ");
         scanf("%d", &n);
     }    
     system("clear");
@@ -106,11 +107,12 @@ int bidder_menu(){
     printf("2. Search auction item\n");
     printf("3. Join room\n");
     printf("4. Back to choose role\n");
-    printf("Please choose 1-4: ...\n");
+    printf("5. Exit\n");
+    printf("Please choose 1-5: ...\n");
     int n; 
     scanf("%d", &n);
-    while(n < 1 || n > 4){
-        printf("Please choose from 1 to 4: ");
+    while(n < 1 || n > 5){
+        printf("Please choose from 1 to 5: ");
         scanf("%d", &n);
     }
     system("clear");
@@ -125,11 +127,12 @@ int seller_menu(){
     printf("3. Join room\n");
     printf("4. Create room\n");
     printf("5. Back to choose role\n");
-    printf("Please choose 1-5: ...\n");
+    printf("6. Exit\n");
+    printf("Please choose 1-6: ...\n");
     int n; 
     scanf("%d", &n);
-    while(n < 1 || n > 5){
-        printf("Please choose from 1 to 5: ");
+    while(n < 1 || n > 6){
+        printf("Please choose from 1 to 6: ");
         scanf("%d", &n);
     }
     system("clear");
@@ -157,4 +160,16 @@ char* create_room(){
     }else{
         return "0";
     }
+}
+
+int bidder_in_room_menu(){
+    system("clear");
+    printf("---------------IN ROOM %d---------------\n", room_id);
+    return 0;
+}
+
+int seller_in_room_menu(){
+    system("clear");
+    printf("---------------IN ROOM---------------\n", room_id);
+    return 0;
 }

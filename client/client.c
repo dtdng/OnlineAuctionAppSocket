@@ -21,6 +21,7 @@ int room_id;
 void send_message(char* header, char* data, int sockfd);
 // void send_message(char* msg, int sockfd);
 void process_message(char* msg, int n);
+int exit_function();
 
 int main(int argc, char **argv) 
 {
@@ -74,57 +75,95 @@ int main(int argc, char **argv)
                 role = choose_role();
             }
             if (role == 1) { //bidder
-                int action = bidder_menu();
-                if (action == 1){
-                    // view all auction room
-                    char header[] = "VROOM_ALL\0";
-                    char data[] = " ";
-                    send_message(header, data, sockfd); 
-                }else if (action == 2){
-                    // search auction item
-                    // char header[] = "SEARCH_ITEM\0";
-                    // char data[] = " ";
-                    // send_message(header, data, sockfd);
-                } //search auction item
-                else if (action == 3){
-                    // join room
-                    int room_id;
-                    printf("Please enter room id: ");
-                    scanf("%d", &room_id);
 
-                    char header[] = "JOIN_ROOM\0";
-                    char data[5];
-                    sprintf(data, "%d\0", room_id);
-                    
-                    send_message(header, data, sockfd);  
-                } else if (action == 4){
-                    // back to choose role
-                    role = choose_role();
-                    continue;
-                }
-            }else if (role == 2) { //seller
-                int action = seller_menu();
-                if (action == 1){
-                    // view all auction room
-                    char header[] = "VROOM_ALL\0";
-                    char data[] = " ";
-                    send_message(header, data, sockfd); 
-                }else if (action == 2){
+                if (is_in_room == 1) {
+                    //TODO in room menu
+                    int action = bidder_in_room_menu();
+                    printf("ROOM_ID: %d\n", room_id);
+                }else {
                     //TODO
-                }else  if (action == 3){
-                    //TODO
-                }else if (action == 4){
-                    //TODO
-                    char* room_name = create_room();\
-                    
-                    if(strcmp(room_name, "0") == 0){
+                    int action = bidder_menu();
+                    if (action == 1){
+                        // view all auction room
+                        char header[] = "VROOM_ALL\0";
+                        char data[] = " ";
+                        send_message(header, data, sockfd); 
+                    }else if (action == 2){
+                        // search auction item
+                        // char header[] = "SEARCH_ITEM\0";
+                        // char data[] = " ";
+                        // send_message(header, data, sockfd);
+                    } //search auction item
+                    else if (action == 3){
+                        // join room
+                        printf("Please enter room id: ");
+                        scanf("%d", &room_id);
+
+                        char header[] = "JROOM_REQ\0";
+                        char data[5];
+                        sprintf(data, "%d\0", room_id);
+                        send_message(header, data, sockfd);  
+                    } else if (action == 4){
+                        // back to choose role
+                        role = choose_role();
                         continue;
+                    }else if (action == 5)
+                    {
+                        int temp =  exit_function();
+                        if (temp == 1){
+                            // send_message("LOGOUT___", username, sockfd);
+                            exit(0);
+                        }else if (temp == 0){
+                            continue;
+                        }
                     }
-                    send_message("CROOM_REQ", room_name, sockfd);
-                }else if (action == 5){
-                    // back to choose role
-                    role = choose_role();
-                    continue;
+                }
+                
+            }else if (role == 2) { //seller
+                if (is_in_room == 1) {
+                    int action = seller_in_room_menu();
+                    //TODO in room menu
+                }else { //not in room
+                    //TODO
+                    int action = seller_menu();
+                    if (action == 1){
+                        // view all auction room
+                        char header[] = "VROOM_ALL\0";
+                        char data[] = " ";
+                        send_message(header, data, sockfd); 
+                    }else if (action == 2){
+                        //TODO
+                    }else  if (action == 3){
+                        printf("Please enter room id: ");
+                        scanf("%d", &room_id);
+
+                        char header[] = "JROOM_REQ\0";
+                        char data[5];
+                        sprintf(data, "%d\0", room_id);
+
+                        send_message(header, data, sockfd);  
+                    }else if (action == 4){
+                        //TODO
+                        char* room_name = create_room();
+                        
+                        if(strcmp(room_name, "0") == 0){
+                            continue;
+                        }
+                        send_message("CROOM_REQ", room_name, sockfd);
+                    }else if (action == 5){
+                        // back to choose role
+                        role = choose_role();
+                        continue;
+                    }else if (action == 6)
+                    {
+                        int temp =  exit_function();
+                        if (temp == 1){
+                            // send_message("LOGOUT___", username, sockfd);
+                            exit(0);
+                        }else if (temp == 0){
+                            continue;
+                        }
+                    }
                 }
                 
             }
@@ -162,14 +201,29 @@ void process_message(char* msg, int n){
             LOG_GREEN("Login successed");
             logged = true;
         }
-        else {
+        else if (strcmp(data, "1") == 0 || strcmp(data, "2") == 0)  {
             LOG_RED("Wrong password or username!!");
+            logged = false;
+        }
+        else if (strcmp(data, "4") == 0)  {
+            LOG_RED("Account is already logged in!!");
+            logged = false;
+        } else {
+            LOG_RED("Database has error!!");
             logged = false;
         }
         printf("\n");
         return;
     }else if (strcmp(header, "REGIS_RES") == 0){
         // register_request(data);
+        if(strcmp(data, "0") == 0) {
+            LOG_GREEN("Create account successed");
+        }
+        else if (strcmp(data, "1") == 0)  {
+            LOG_RED("Account has already existed!!");
+        }else {
+            LOG_RED("Database has error!!");
+        }
         printf("\n");
         return;
     }
@@ -199,8 +253,17 @@ void process_message(char* msg, int n){
         }else if (strcmp(data, "2") == 0){
             LOG_RED("Database has error\n");
         }
-        
+    } else if (strcmp(header, "JROOM_RES") == 0){
+        if (strcmp(data, "0") == 0){
+            is_in_room = 1;
+            LOG_GREEN("Join room successfully\n");
+        }else if (strcmp(data, "1") == 0){
+            LOG_RED("Database has error\n");
+        }else if (strcmp(data, "2") == 0){
+            LOG_RED("Room not exist\n");
+        }
     }
+    
 }
 
 void send_message(char* header, char* data, int sockfd){
@@ -208,3 +271,21 @@ void send_message(char* header, char* data, int sockfd){
     sprintf(sendline, "HEADER: %s; DATA: %s", header, data);
     send(sockfd, sendline, strlen(sendline), 0);
 };
+
+int exit_function(){
+    
+    printf("Do you want to exit\n");
+    printf("1. Yes\n");
+    printf("2. No\n");
+    int n;
+    scanf("%d", &n);
+    while(n != 1 && n != 2){
+        printf("Please choose 1 - 2: ");
+        scanf("%d", &n);
+    }
+    if (n == 1){
+        return 1;   //exit
+    }
+    system("clear");
+    return 0; //not exit
+}
