@@ -8,6 +8,15 @@
 
 #include "./database/database_function.h"
 #include "./server_function.h"
+
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 #define MAXLINE 4096 /*max text line length*/
 #define SERV_PORT 3000 /*port*/
 #define LISTENQ 8 /*maximum number of client connections */
@@ -52,7 +61,7 @@ int main (int argc, char **argv)
         //accept a connection
         connfd = accept (listenfd, (struct sockaddr *) &cliaddr, &clilen);
         
-        printf("%s\n","[SYSTEM] Received request...");
+        printf("%s [SYSTEM] Received request... %s\n", ANSI_COLOR_MAGENTA, ANSI_COLOR_RESET);
 
         if ( (childpid = fork ()) == 0 ) { //if it’s 0, it’s child process
             // printf("username: %s\n", username);
@@ -65,7 +74,7 @@ int main (int argc, char **argv)
             
             while ( (n = recv(connfd, buf, MAXLINE,0)) > 0)  {
                 // printf("%s\n","String received from and resent to the client:");
-                printf("[SYSTEM] Received request: %s\n", buf);
+                printf("%s [SYSTEM] Received request: %s %s\n",ANSI_COLOR_GREEN, buf, ANSI_COLOR_RESET);
                 // puts(buf);
                 process_message(buf, n, connfd);
                 memset(buf,0,strlen(buf));
@@ -76,7 +85,7 @@ int main (int argc, char **argv)
                 perror("[SYSTEM] Read error"); 
             }
             logout_user(username);
-            printf("[SYSTEM] User %s logout\n", username);
+            printf("%s [SYSTEM] User %s logout %s\n", ANSI_COLOR_YELLOW, username, ANSI_COLOR_RESET);
             memset(username,0,strlen(username));
             exit(1);
             
@@ -174,14 +183,58 @@ void process_message(char* msg, int n, int connfd){
         }
         printf("\n");
     }
+    if (strcmp(header, "CITEM_REQ") == 0)
+    {
+        char name[20], owner[20];
+        int start_price, buyout_price, duration, room_id;
+        sscanf(data, "%s , %d , %d , %d , %d , %s\0", name, &start_price, &buyout_price, &duration, &room_id, owner);
+        int respone = insert_items_table(name, start_price, buyout_price, room_id , duration, owner);
+        if(respone == 0){
+            send_message("CITEM_RES", "0", connfd);
+        }else if (respone == 1){
+            send_message("CITEM_RES", "1", connfd);
+        }else if (respone == 2){
+            send_message("CITEM_RES", "2", connfd);
+        }
+        printf("\n");
+    }
+    if (strcmp(header, "MITEM_REQ") == 0)
+    {
+        char* respone = search_item_by_owner(username);
+        send_message("MITEM_RES", respone, connfd);
+        printf("Respone: %s\n", respone);
+        free(respone);
+        printf("\n");
+    }
+    if (strcmp(header, "BITEM_REQ") == 0)
+    {
+        int respone =  update_item(atoi(data), 1, room_id);
+        if(respone == 0){
+            send_message("BITEM_RES", "0", connfd);
+        }else if (respone == 1){
+            send_message("BITEM_RES", "1", connfd);
+        }else if (respone == 2){
+            send_message("BITEM_RES", "2", connfd);
+        }
+        printf("\n");
+    }
+    if (strcmp(header, "VRITEMREQ") == 0)
+    {
+        char* respone = search_item_by_room_id(room_id);
+        // printf("Respone: %s\n", respone);
+        send_message("VRITEMRES", respone, connfd);
+        free(respone);
+        printf("\n");
+    }
+    
 
     printf("USERNAME: %s\n", username);
     printf("ROOM_ID: %d\n", room_id);
-    
 }
 
 void send_message(char* header, char* data, int connfd){
     char sendline[MAXLINE], recvline[MAXLINE];
     sprintf(sendline, "HEADER: %s; DATA: %s", header, data);
+    printf("%s [SYSTEM] SEND: %s %s\n", ANSI_COLOR_CYAN, sendline, ANSI_COLOR_RESET);
     send(connfd, sendline, strlen(sendline), 0);
 }
