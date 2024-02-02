@@ -74,7 +74,7 @@ char* login_register_function(){
         sprintf(data, "username: %s; password: %s\0", sender_acc.username, sender_acc.password);
     }else {
         sender_acc = display_register_menu();
-        sprintf(header, "REGISTER_\0");
+        sprintf(header, "REGIS_REQ\0");
         sprintf(data, "username: %s; password: %s\0", sender_acc.username, sender_acc.password);
     }
 
@@ -104,7 +104,7 @@ int bidder_menu(){
     
     printf("---------------HELLO BIDDER---------------\n");
     printf("1. View all auction room\n");
-    printf("2. Search auction item\n");
+    printf("2. Search auction item (Not working)\n");
     printf("3. Join room\n");
     printf("4. Back to choose role\n");
     printf("5. Exit\n");
@@ -122,12 +122,12 @@ int bidder_menu(){
 int seller_menu(){
     
     printf("---------------HELLO SELLER---------------\n");
-    printf("1. View all auction room\n");
-    printf("2. Create auction item\n");
-    printf("3. Join room\n");
-    printf("4. Create room\n");
-    printf("5. Back to choose role\n");
-    printf("6. View your items\n");
+    printf("1. Create auction item\n");
+    printf("2. View your items\n");
+    printf("3. View all auction room\n");
+    printf("4. Join room\n");
+    printf("5. Create room\n");
+    printf("6. Back to choose role\n");
     printf("7. Exit\n");
     printf("Please choose 1-7: ...\n");
     int n; 
@@ -167,13 +167,14 @@ int bidder_in_room_menu(){
     // system("clear");
     printf("---------------IN ROOM %d---------------\n", room_id);
     printf("1. View all auction item in this room\n");
-    printf("2. Place a bid on an current auction item:\n");
-    printf("3. Leave room\n");
-    printf("Please choose 1-3: ...\n");
+    printf("2. View Schedule\n");
+    printf("3. Place a bid on an current auction item (Not working)\n");
+    printf("4. Leave room\n");
+    printf("Please choose 1-4: ...\n");
     int n;
     scanf("%d", &n);
-    while(n < 1 || n > 3){
-        printf("Please choose from 1 to 3: ");
+    while(n < 1 || n > 4){
+        printf("Please choose from 1 to 4: ");
         scanf("%d", &n);
     }
     system("clear");
@@ -264,4 +265,29 @@ void display_item(char* data){
         token = strtok(NULL, ";");
     }
    return;
+}
+void display_schedule(char* data){
+    //  1 , 2024-01-31 16:40:17 , 1970-01-01 07:09:59 , 1 , 1 , 0 ;
+    char *token;
+    token = strtok(data, ";");
+    int id, item_id, room_id, status;
+    char* start_time_date[30], start_time_hour[30];
+    char* end_time_date[30], end_time_hour[30];
+    printf("---------------SCHEDULE---------------\n");
+    printf("ID\tStart Time\t\tEnd Time\t\tItem ID\tRoom ID\tStatus\n");
+    while( token != NULL ) 
+    {   
+        // printf("%s\n", token);
+        sscanf(token, "%d , %s %s , %s %s , %d , %d , %d\0", &id, start_time_date, start_time_hour, end_time_date, end_time_hour, &room_id, &item_id, &status);
+        if (status == 0){
+            printf("%d\t%s %s\t%s %s\t%d\t%d\t%s\n", id, start_time_date, start_time_hour, end_time_date, end_time_hour, item_id, room_id, "Waiting");
+        }else if (status == 1){
+            printf("%d\t%s %s\t%s %s\t%d\t%d\t%s\n", id, start_time_date, start_time_hour, end_time_date, end_time_hour, item_id, room_id, "Waiting");
+        }else if (status == 2){
+            printf("%d\t%s %s\t%s %s\t%d\t%d\t%s\n", id, start_time_date, start_time_hour, end_time_date, end_time_hour, item_id, room_id, "Waiting");
+        }else if (status == 3){
+            printf("%d\t%s %s\t%s %s\t%d\t%d\t%s\n", id, start_time_date, start_time_hour, end_time_date, end_time_hour, item_id, room_id, "Waiting");
+        }
+        token = strtok(NULL, ";");
+    }
 }

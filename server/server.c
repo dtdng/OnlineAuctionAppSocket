@@ -61,7 +61,7 @@ int main (int argc, char **argv)
         //accept a connection
         connfd = accept (listenfd, (struct sockaddr *) &cliaddr, &clilen);
         
-        printf("%s [SYSTEM] Received request... %s\n", ANSI_COLOR_MAGENTA, ANSI_COLOR_RESET);
+        printf("%s [SYSTEM] New client connected %s\n", ANSI_COLOR_MAGENTA, ANSI_COLOR_RESET);
 
         if ( (childpid = fork ()) == 0 ) { //if it’s 0, it’s child process
             // printf("username: %s\n", username);
@@ -85,13 +85,11 @@ int main (int argc, char **argv)
                 perror("[SYSTEM] Read error"); 
             }
             logout_user(username);
-            printf("%s [SYSTEM] User %s logout %s\n", ANSI_COLOR_YELLOW, username, ANSI_COLOR_RESET);
+            printf("%s [SYSTEM] User %s disconnected %s\n", ANSI_COLOR_YELLOW, username, ANSI_COLOR_RESET);
             memset(username,0,strlen(username));
             exit(1);
-            
         }
         //close server connection
-        
         close(connfd);
     }
 }
@@ -133,7 +131,7 @@ void process_message(char* msg, int n, int connfd){
         printf("\n");
         return;
     }
-    if(strcmp(header, "REGISTER_") == 0){
+    if(strcmp(header, "REGIS_REQ") == 0){
         int respone = register_request(data);
         if(respone == 0){
             send_message("REGIS_RES", "0", connfd);
@@ -145,7 +143,7 @@ void process_message(char* msg, int n, int connfd){
         printf("\n");
         return;
     }
-    if (strcmp(header, "VROOM_ALL\0") == 0){
+    if (strcmp(header, "VROOM_REQ\0") == 0){
         printf("VIEW_ROOM_ALL:\n");
         char* respone = search_all_auction_room_table_string(); //get all room 
         send_message("VROOM_RES", respone, connfd); //send all room to client
@@ -208,14 +206,22 @@ void process_message(char* msg, int n, int connfd){
     }
     if (strcmp(header, "BITEM_REQ") == 0)
     {
-        int respone =  update_item(atoi(data), 1, room_id);
-        if(respone == 0){
-            send_message("BITEM_RES", "0", connfd);
-        }else if (respone == 1){
-            send_message("BITEM_RES", "1", connfd);
-        }else if (respone == 2){
-            send_message("BITEM_RES", "2", connfd);
+        int check = search_item_with_status_id(atoi(data), 0);
+        printf("CHECK: %d\n", check);
+        if (check == 1){
+            send_message("BITEM_RES", "4", connfd);
         }
+        else {
+            int respone =  update_item(atoi(data), 1, room_id);
+            if(respone == 0){
+                send_message("BITEM_RES", "0", connfd);
+            }else if (respone == 1){
+                send_message("BITEM_RES", "1", connfd);
+            }else if (respone == 2){
+                send_message("BITEM_RES", "2", connfd);
+            }
+        }
+        
         printf("\n");
     }
     if (strcmp(header, "VRITEMREQ") == 0)
@@ -226,8 +232,12 @@ void process_message(char* msg, int n, int connfd){
         free(respone);
         printf("\n");
     }
-    
-
+    if (strcmp(header, "VSCHE_REQ") == 0){
+        char* respone = search_bids_session_by_room_id(room_id);
+        send_message("VSCHE_RES", respone, connfd);
+        free(respone);
+        printf("\n");
+    }
     printf("USERNAME: %s\n", username);
     printf("ROOM_ID: %d\n", room_id);
 }

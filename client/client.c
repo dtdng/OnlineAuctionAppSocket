@@ -15,11 +15,11 @@
 char username[20];
 bool logged = false;
 int role = 0; //1: bidder, 2: seller, 0: not choose
+
+char your_item[200];
 int is_in_room = 0; //0: not in room, 1: in room
 int room_id; 
-
-char temp[200];
-
+char item_in_room[200];
 void send_message(char* header, char* data, int sockfd);
 // void send_message(char* msg, int sockfd);
 void process_message(char* msg, int n);
@@ -82,59 +82,45 @@ int main(int argc, char **argv)
                     //TODO in room menu
                     int action = bidder_in_room_menu();
                     printf("ROOM_ID: %d\n", room_id);
-                    if (action == 1){
-                        // view all auction item in room
-                        // char header[] = "VITEM_ALL\0";
-                        // char data[5];
-                        // sprintf(data, "%d\0", room_id);
-                        // send_message(header, data, sockfd);
-                    } else if (action == 2){
-                        // bid item
-                        // char header[] = "BITEM_REQ\0";
-                        // char data[5];
-                        // sprintf(data, "%d\0", room_id);
-                        // send_message(header, data, sockfd);
-                    } else if (action == 3){
-                        // back to bidder menu
+                    if (action == 1){ // view all auction item in room
+                        char header[] = "VRITEMREQ\0";
+                        char data[5];
+                        send_message(header, data, sockfd);
+                    } else if (action == 2){ // view schedula
+                        char header[] = "VSCHE_REQ\0";
+                        char data[5];
+                        send_message(header, data, sockfd);
+                    } else if (action == 3){ // bid item
+
+                    } else if (action == 4){ // back to bidder menu
                         is_in_room = 0;
                         system("clear");
                         continue;
-                    } else if (action == 4)
-                    {
-                        /* code */
                     }
-                    
                 }else {
                     //TODO
                     int action = bidder_menu();
-                    if (action == 1){
-                        // view all auction room
-                        char header[] = "VROOM_ALL\0";
+                    if (action == 1){ // view all auction room
+                        char header[] = "VROOM_REQ\0";
                         char data[] = " ";
                         send_message(header, data, sockfd); 
-                    }else if (action == 2){
-                        // search auction item
-                        // char header[] = "SEARCH_ITEM\0";
-                        // char data[] = " ";
-                        // send_message(header, data, sockfd);
-                    }else if (action == 3){
-                        // join room
+                    }else if (action == 2){ // search auction item
+
+                    }else if (action == 3){ // join room
                         printf("Please enter room id: ");
                         scanf("%d", &room_id);
 
                         char header[] = "JROOM_REQ\0";
                         char data[5];
                         sprintf(data, "%d\0", room_id);
+                        
                         send_message(header, data, sockfd);  
-                    }else if (action == 4){
-                        // back to choose role
+                    }else if (action == 4){// back to choose role                        
                         role = choose_role();
                         continue;
-                    }else if (action == 5)
-                    {
+                    }else if (action == 5){ //exit
                         int temp =  exit_function();
                         if (temp == 1){
-                            // send_message("LOGOUT___", username, sockfd);
                             exit(0);
                         }else if (temp == 0){
                             continue;
@@ -146,86 +132,77 @@ int main(int argc, char **argv)
                 if (is_in_room == 1) {
                     int action = seller_in_room_menu();
                     //TODO in room menu
-                    if (action == 1){
-                        // view all auction item in room
+                    if (action == 1){ // view all auction item in room
+                        
                         char header[] = "VRITEMREQ\0";
                         char data[5];
                         send_message(header, data, sockfd);
-                    } else if (action == 2){
-                        // place an item to bid in the room
+                    } else if (action == 2){ // place an item to bid in the room
                         printf("Your item: \n");
-                        display_item(temp);
+                        display_item(your_item);
                         printf("Choose an item to place a bid: ");
                         int item_id;
                         scanf("%d", &item_id);
                         char header2[] = "BITEM_REQ\0";
                         char data2[5];
                         sprintf(data2, "%d\0", item_id);
-                        printf("data2: %s\n", data2);
+
                         send_message(header2, data2, sockfd);
-                    } else if (action == 3){
-                        // back to bidder menu
+                    } else if (action == 3){ // back to bidder menu
                         is_in_room = 0;
+
+                        //TODO add request leave room
                         system("clear");
                         continue;
-                    } else if (action == 4)
-                    {
+                    } else if (action == 4){
                         /* code */
                     }
                 }else { //not in room
                     //TODO
                     int action = seller_menu();
-                    if (action == 1){
-                        // view all auction room
-                        char header[] = "VROOM_ALL\0";
+                    if (action == 3){ // view all auction room
+                        char header[] = "VROOM_REQ\0";
                         char data[] = " ";
                         send_message(header, data, sockfd); 
-                    }else if (action == 2){
-                        //TODO
-                        // create auction item
+                    }else if (action == 1){ // create auction item
                         char header[] = "CITEM_REQ\0";
                         char* data = create_item_menu();
                         send_message(header, data, sockfd);
                         system("clear");
                         action = 0;
-                    }else if (action == 3){
+                    }else if (action == 4){ //join room
+
                         printf("Please enter room id: ");
                         scanf("%d", &room_id);
                         char header[] = "JROOM_REQ\0";
                         char data[5];
                         sprintf(data, "%d\0", room_id);
                         send_message(header, data, sockfd);  
-                    }else if (action == 4){
-                        //TODO
+                    }else if (action == 5){ // create room
                         char* room_name = create_room();
-                        if(strcmp(room_name, "0") == 0){
-                            continue;
+                        if(strcmp(room_name, "0") != 0){
+                            send_message("CROOM_REQ", room_name, sockfd);
                         }
-                        send_message("CROOM_REQ", room_name, sockfd);
-                    }else if (action == 5){
-                        // back to choose role
+                    }else if (action == 6){ // back to choose role
                         role = choose_role();
                         continue;
                     }else if (action == 7)
                     {
                         int temp =  exit_function();
                         if (temp == 1){
-                            // send_message("LOGOUT___", username, sockfd);
                             exit(0);
                         }else if (temp == 0){
                             continue;
                         }
-                    }else if (action == 6){
-                        char header[] = "MITEM_REQ\0"; //view all item of seller
+                    }else if (action == 2){ //view all item of seller
+                        char header[] = "MITEM_REQ\0"; 
                         char data[5];
                         sprintf(data, "%d\0", room_id);
                         send_message(header, data, sockfd);
                     }
                 }
             }
-        }
-        
-        // send(sockfd, sendline, strlen(sendline), 0);                
+        }              
         if (recv(sockfd, recvline, MAXLINE,0) == 0){
             //error: server terminated prematurely
             perror("The server terminated prematurely"); 
@@ -301,7 +278,7 @@ void process_message(char* msg, int n){
         printf("\n");
         free(token);
         return;
-    } else if (strcmp(header, "CROOM_RES") == 0){
+    }else if (strcmp(header, "CROOM_RES") == 0){
         if (strcmp(data, "0") == 0){
             LOG_GREEN("Room created successfully\n");
         }else if (strcmp(data, "1") == 0){
@@ -309,7 +286,7 @@ void process_message(char* msg, int n){
         }else if (strcmp(data, "2") == 0){
             LOG_RED("Database has error\n");
         }
-    } else if (strcmp(header, "JROOM_RES") == 0){
+    }else if (strcmp(header, "JROOM_RES") == 0){
         if (strcmp(data, "0") == 0){
             is_in_room = 1;
             LOG_GREEN("Join room successfully\n");
@@ -318,7 +295,7 @@ void process_message(char* msg, int n){
         }else if (strcmp(data, "2") == 0){
             LOG_RED("Room not exist\n");
         }
-    } else if (strcmp(header, "CITEM_RES") == 0)
+    }else if (strcmp(header, "CITEM_RES") == 0)
     {
         if (strcmp(data, "0") == 0){
             LOG_GREEN("Create item successfully\n");
@@ -335,7 +312,7 @@ void process_message(char* msg, int n){
             LOG_RED("Error\n");
         }else
         {
-            strcpy(temp, data);
+            strcpy(your_item, data);
             printf("Your item: \n");
             display_item(data);
         }
@@ -348,11 +325,33 @@ void process_message(char* msg, int n){
         }else
         {
             printf("Item in this room: \n");
-            display_item(data);
+            strcpy(item_in_room, data);
+            display_item(item_in_room);
         }
-        
+    }else if (strcmp(header, "VSCHE_RES") == 0){
+        if (strcmp(data, "This room have no item on queue") == 0){
+            LOG_RED("This room have no item on queue\n");
+        }else if (strcmp(data, "Error") == 0){
+            LOG_RED("Error\n");
+        }else
+        {
+            printf("Schedule in this room: \n");
+            display_schedule(data);
+        }
     }
-    
+    else if (strcmp(header, "BITEM_RES") == 0){
+        if (strcmp(data, "0") == 0){
+            LOG_GREEN("Item is place in room successfully\n");
+        }else if (strcmp(data, "1") == 0){
+            LOG_RED("Database has error\n");
+        }else if (strcmp(data, "2") == 0){
+            LOG_RED("Place item fail\n");
+        }else if (strcmp(data, "3") == 0){
+            LOG_RED("Item is not belong to you\n");
+        }else if (strcmp(data, "4") == 0){
+            LOG_RED("Item is already on queue\n");
+        }
+    }
     memset(header,0,strlen(header));
     memset(data,0,strlen(data));
 }
